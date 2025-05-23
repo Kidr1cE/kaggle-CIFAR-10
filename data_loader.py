@@ -8,6 +8,13 @@ from PIL import Image
 from torch.utils.data import Subset
 from torch.utils.data.dataloader import DataLoader, Dataset
 
+"""
+dataset
+    image size: 32*32
+    length: 50000
+    label: trainLabels.csv
+"""
+
 batch_size = 32
 data_path = "../data/cifar-10/"  # 50000
 
@@ -29,10 +36,11 @@ class CIFARDataset(Dataset):
 
         self.class_to_idx = dict(zip(self.labels, range(self.n_classes)))   # labels与id映射字典
         self.idx_to_class = {v : k for k,v in self.class_to_idx.items()}
+        print(self.class_to_idx)                                            # TODO: log打印日志
 
     def __len__(self):
         return len(self.labels_info)
-    
+
     def __getitem__(self, index):
         id = self.labels_info['id'][index]
         label = self.labels_info['label'][index]
@@ -59,7 +67,7 @@ def split_cifar_dataset(dataset, train_ratio=0.8,
     # 根据数据索引分割数据集
     train_dataset = Subset(dataset, train_indices)
     test_dataset = Subset(dataset, test_indices)
-    print(len(train_dataset), len(test_dataset))
+    print(f"train_dataset_len: {len(train_dataset)}, test_dataset_len: {len(test_dataset)}") # TODO: log打印日志
 
     return train_dataset, test_dataset
 
@@ -75,6 +83,7 @@ def load_dataset(batch_size, train_ratio, seed):
 
 def test_load_dataset():
     train_iter, test_iter = load_dataset(32, 0.8)
+    # 测试数据迭代器
     test_data_loader.test_data_iterator(
         data_loader=train_iter,
         num_batches=3,
