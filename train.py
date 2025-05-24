@@ -2,14 +2,14 @@ import torch
 from torch import nn
 from utils.visualizer import TrainingVisualizer
 
-def train(net, train_iter, test_iter, num_epoch, lr, device):
+def train(net, train_iter, test_iter, num_epoch, lr, wd, device):
     def init_weights(m):
         if type(m) == nn.Linear or type(m) == nn.Conv2d:
             nn.init.xavier_uniform_(m.weight)
     net.apply(init_weights)
     net.to(device)
     
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=wd)
     loss = nn.CrossEntropyLoss()
     viz = TrainingVisualizer(title="CIFAR10")
 
