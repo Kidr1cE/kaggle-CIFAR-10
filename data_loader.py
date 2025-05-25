@@ -1,8 +1,9 @@
+
+import os
 import pandas
 import torch
 import numpy
 import torchvision
-import test_data_loader
 
 from PIL import Image
 from torch.utils.data import Subset
@@ -47,6 +48,21 @@ class CIFARDataset(Dataset):
         image = self.transform(Image.open(self.path + f"train/{id}.png"))
 
         return image, self.class_to_idx[label]
+    
+class CIFARTestDataset(Dataset):
+    def __init__(self, path, transform):
+        self.path = path
+        self.transform = transform
+
+        self.file_num = len(os.listdir(path))
+
+    def __len__(self):
+        return len(self.labels_info)
+
+    def __getitem__(self, index):
+        image = self.transform(Image.open(self.path + f"test/{index}.png"))
+        return image
+
 
 def split_cifar_dataset(dataset, train_ratio=0.8, 
                         random_seed=None, shuffle=True):
@@ -87,27 +103,20 @@ def load_dataset(batch_size, train_ratio, seed=None):
                                      [0.2023, 0.1994, 0.2010])])
     dataset = CIFARDataset(data_path, transform)
     train, test = split_cifar_dataset(dataset, train_ratio, seed)
-    train_iter = DataLoader(train, batch_size, num_workers=0)
-    test_iter = DataLoader(test, batch_size, num_workers=0)
+    train_iter = DataLoader(train, batch_size, num_workers=0, pin_memory=True)
+    test_iter = DataLoader(test, batch_size, num_workers=0, pin_memory=True)
     return train_iter, test_iter
 
-def test_load_dataset():
-    train_iter, test_iter = load_dataset(32, 0.8)
-    # 测试数据迭代器
-    test_data_loader.test_data_iterator(
-        data_loader=train_iter,
-        num_batches=3,
-        visualize=True,
-        print_batch_info=True,
-        check_labels=True
-    )
-    test_data_loader.test_data_iterator(
-        data_loader=test_iter,
-        num_batches=3,
-        visualize=True,
-        print_batch_info=True,
-        check_labels=True
-    )
-
-if __name__ == "__main__":
-    test_load_dataset()
+def get_test_data(batch_size):
+    transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(40),
+        torchvision.transforms.RandomResizedCrop(32, scale=(0.64, 1.0),
+                                                   ratio=(1.0, 1.0)),
+        torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize([0.4914, 0.4822, 0.4465],
+                                     [0.2023, 0.1994, 0.2010])])
+    dataset = CIFARTestDataset(data_path, transform)
+    data_iter = DataLoader(dataset, batch_size, num_workers=0, pin_memory=True)
+    
+    return data_iter

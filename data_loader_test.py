@@ -2,6 +2,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
+from data_loader import load_dataset
 
 
 # TODO: 将图像移动至显存
@@ -88,3 +89,31 @@ def test_data_iterator(data_loader, num_batches=5, visualize=True,
         for label, count in sorted(label_counts.items()):
             label_name = data_loader.dataset.dataset.idx_to_class.get(label, f"类别_{label}")
             print(f"  {label_name} ({label}): {count} 个样本")
+
+def test_load_dataset():
+    train_iter, test_iter = load_dataset(32, 0.8)
+    # 测试数据迭代器
+    test_data_iterator(
+        data_loader=train_iter,
+        num_batches=3,
+        visualize=True,
+        print_batch_info=True,
+        check_labels=True
+    )
+    test_data_iterator(
+        data_loader=test_iter,
+        num_batches=3,
+        visualize=True,
+        print_batch_info=True,
+        check_labels=True
+    )
+
+"""
+性能指标:
+  处理时间: 1.72 秒
+  批次/秒: 1.75
+  样本/秒: 55.88
+"""
+
+if __name__ == "__main__":
+    test_load_dataset()
