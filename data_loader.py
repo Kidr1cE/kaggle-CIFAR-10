@@ -54,13 +54,13 @@ class CIFARTestDataset(Dataset):
         self.path = path
         self.transform = transform
 
-        self.file_num = len(os.listdir(path))
+        self.file_num = 300_000
 
     def __len__(self):
-        return len(self.labels_info)
+        return self.file_num
 
     def __getitem__(self, index):
-        image = self.transform(Image.open(self.path + f"test/{index}.png"))
+        image = self.transform(Image.open(self.path + f"test/{index+1}.png"))
         return image
 
 
