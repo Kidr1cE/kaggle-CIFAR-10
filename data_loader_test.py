@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
+
+# TODO: 将图像移动至显存
 def test_data_iterator(data_loader, num_batches=5, visualize=True, 
                        print_batch_info=True, check_labels=True):
     """
