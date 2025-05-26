@@ -1,0 +1,14 @@
+# UTF-8
+
+data_loader:
+  seed: 114514
+  train_ratio: 0.8
+  batch_size: 128
+
+training:
+  epochs: 30
+  optimizer:
+    lr: 2e-4
+    wd: 5e-4
+  vis_path: ./logs/resnet18.png
+  model_path: ./data/resnet18.pth

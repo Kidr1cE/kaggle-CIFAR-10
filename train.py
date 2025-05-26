@@ -1,21 +1,35 @@
 import torch
+import yaml
+import argparse
 import data_loader
 from torch import nn
 from model import resnet
 from utils import visualizer, utils
 
-def train(net, train_iter, test_iter, num_epoch, lr, wd, device):
+def load_config():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="./conf/default.yaml")
+    args = parser.parse_args()
+
+    with open(args.config, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    return config
+
+def train(net, train_iter, test_iter, train_conf, device):
     def init_weights(m):
         if type(m) == nn.Linear or type(m) == nn.Conv2d:
             nn.init.xavier_uniform_(m.weight)
     net.apply(init_weights)
     net.to(device)
     
+    lr = float(train_conf['optimizer']['lr'])
+    wd = float(train_conf['optimizer']['wd'])
     optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=wd)
     loss = nn.CrossEntropyLoss()
     viz = visualizer.TrainingVisualizer(title="CIFAR10")
 
-    for epoch in range(num_epoch):
+    for epoch in range(int(train_conf['epochs'])):
         # 训练阶段
         net.train()
         train_loss = 0.0    # 训练损失
@@ -52,7 +66,7 @@ def train(net, train_iter, test_iter, num_epoch, lr, wd, device):
                 _, predicted = y_hat.max(1)
                 val_total += y.size(0)
                 val_correct += predicted.eq(y).sum().item()
-        
+
         # 计算验证准确率
         val_accuracy = 100.0 * val_correct / val_total
 
@@ -60,18 +74,26 @@ def train(net, train_iter, test_iter, num_epoch, lr, wd, device):
         viz.update(epoch+1, train_accuracy, val_accuracy, train_loss)
 
     # 保存最终结果
-    viz.save_figure('final_training_result.png')
+    viz.save_figure(train_conf['vis_path'])
 
     return
 
-lr, wd = 2e-4, 5e-4
-batch_size, epoch_num = 32, 30
-
-save_path = "./data/resnet18.pth"
 
 if __name__ == "__main__":
-    train_iter, test_iter = data_loader.load_dataset(batch_size, 0.8, 114514)
+    # 读取设置
+    conf = load_config()
+    data_loader_conf = conf['data_loader']
+    train_conf = conf['training']
 
+    # 数据迭代器
+    train_iter, test_iter = data_loader.load_dataset(
+        data_loader_conf['batch_size'],
+        data_loader_conf['train_ratio'],
+        data_loader_conf['seed'])
+
+    # 获取网络
     net = resnet.resnet18(10, 3)
-    train(net, train_iter, test_iter, epoch_num, lr, wd, utils.try_gpu())
-    torch.save(net.state_dict(), save_path)
+
+    # 训练
+    train(net, train_iter, test_iter, train_conf, utils.try_gpu())
+    torch.save(net.state_dict(), train_conf.model_path)
