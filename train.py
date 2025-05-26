@@ -1,9 +1,8 @@
 import torch
 import data_loader
-import utils.utils as utils
 from torch import nn
 from model import resnet
-from utils.visualizer import TrainingVisualizer
+from utils import visualizer, utils
 
 def train(net, train_iter, test_iter, num_epoch, lr, wd, device):
     def init_weights(m):
@@ -14,7 +13,7 @@ def train(net, train_iter, test_iter, num_epoch, lr, wd, device):
     
     optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=wd)
     loss = nn.CrossEntropyLoss()
-    viz = TrainingVisualizer(title="CIFAR10")
+    viz = visualizer.TrainingVisualizer(title="CIFAR10")
 
     for epoch in range(num_epoch):
         # 训练阶段
