@@ -3,11 +3,10 @@ import torch
 from model import resnet
 from data_loader import get_test_data
 from utils import utils
+from configs import config
 
 id_to_class = {0:'airplane', 1: 'automobile', 2: 'bird', 3: 'cat', 4: 'deer',
     5: 'dog', 6: 'frog', 7: 'horse', 8:'ship', 9: 'truck'}
-
-save_path = "./data/resnet18.pth"
 
 def predict(net, batch_size, device):
     net.eval()
@@ -35,9 +34,15 @@ def write_submission(y):
     submission.to_csv('./data/submission.csv', index=False)
 
 if __name__ == "__main__":
+    # 读取设置
+    conf = config.load_config()
+    data_loader_conf = conf['data_loader']
+    train_conf = conf['training']
+
+
     net = resnet.resnet18(10, 3)
     net = net.to(utils.try_gpu())
 
-    net.load_state_dict(torch.load(save_path))
+    net.load_state_dict(torch.load(train_conf['model_path']))
 
-    predict.predict(net, 128, utils.try_gpu())
+    predict.predict(net, data_loader_conf['batch_size'], utils.try_gpu())

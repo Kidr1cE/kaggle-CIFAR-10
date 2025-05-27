@@ -1,20 +1,10 @@
 import torch
-import yaml
-import argparse
 import data_loader
 from torch import nn
 from model import resnet
 from utils import visualizer, utils
+from configs import config
 
-def load_config():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="./conf/default.yaml")
-    args = parser.parse_args()
-
-    with open(args.config, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-
-    return config
 
 def train(net, train_iter, test_iter, train_conf, device):
     def init_weights(m):
@@ -81,7 +71,7 @@ def train(net, train_iter, test_iter, train_conf, device):
 
 if __name__ == "__main__":
     # 读取设置
-    conf = load_config()
+    conf = config.load_config()
     data_loader_conf = conf['data_loader']
     train_conf = conf['training']
 
@@ -96,4 +86,4 @@ if __name__ == "__main__":
 
     # 训练
     train(net, train_iter, test_iter, train_conf, utils.try_gpu())
-    torch.save(net.state_dict(), train_conf.model_path)
+    torch.save(net.state_dict(), train_conf['model_path'])
